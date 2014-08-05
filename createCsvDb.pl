@@ -3,6 +3,7 @@ use strict;
 my %dic;
 my $in_file;
 
+
 sub readData
 {
 	

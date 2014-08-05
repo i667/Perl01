@@ -164,7 +164,7 @@ sub main
 	println "Read to big dictionary...";
 	readToDic();
 	
-	println "Read input file...";
+	println "Read input file $input_file...";
 	my @data = readInput();
 	
 	println "Generate tgl file...";

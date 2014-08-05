@@ -6,6 +6,7 @@ use IO::File;
 my %big_dictionary;
 my $input_file;
 my $pkg;
+my $count = 0;
 
 sub println
 {
@@ -34,7 +35,7 @@ sub readToDic
 	
 	foreach my $line (@data)
 	{
-		my @record = split("--", $line);
+		my @record = split(",", $line);
 		$big_dictionary{$record[1]} = $record[2];
 	}
 	
@@ -61,7 +62,7 @@ sub processPkg
 	
 	my $oldGroup = "null";
 	my $totalTc = scalar @pkgData;
-	my $count = 0;
+	
 	foreach(@pkgData)
 	{
 		$count++;
@@ -141,6 +142,7 @@ sub readInput
 		if(defined $big_dictionary{"$tcID--$tcGroup"})
 		{
 			my $tcName = $big_dictionary{"$tcID--$tcGroup"};
+			chomp $tcName;
 			push(@filter, "$tcGroup,$tcName");
 		}
 		else
@@ -150,7 +152,7 @@ sub readInput
 	}
 	
 	close F2; 
-	return @data;
+	return @filter;
 
 }
 
@@ -168,6 +170,7 @@ sub main
 	println "Generate tgl file...";
 	processPkg(@data);
 	
+	println "Total testcase in tgl file: $count";
 	println "Finish!";
 }
 

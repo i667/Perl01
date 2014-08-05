@@ -177,7 +177,7 @@ sub main
 sub usage
 {
 	println "Wrong format!";
-	
+	println "should be: scriptname inputfile packagename";
 }
 
 my $arg_length = scalar @ARGV;

@@ -5,7 +5,6 @@ my $in_file;
 
 sub readData
 {
-	#my $file = "zresult1.csv";
 	
 	if(!-f $in_file)
 	{

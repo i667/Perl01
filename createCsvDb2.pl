@@ -52,6 +52,7 @@ sub saveToDic
 	close OUT;
 }
 
+
 sub usage
 {
 	print "Wrong parameter!\n";

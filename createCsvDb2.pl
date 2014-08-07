@@ -22,10 +22,11 @@ sub readData
 sub saveToDic
 {
 	my @source = readData();	
-	
+	my $count = 5000;
+	open(OUT, ">output.csv");
 	foreach my $line (@source)
 	{
-		
+		$count++;
 		if($line =~ /^#/)
 		{
 			next;
@@ -42,24 +43,13 @@ sub saveToDic
 		#my $tcVerdict = $lineData[3];
 		my $tcGroup = $lineData[4];
 		
-		$dic{"$tcID--$tcGroup"} = $tcName;		
-	}
-}
+#		$dic{"$tcID--$tcGroup"} = $tcName;
+		print OUT "$count,$tcID--$tcGroup,$tcName\n";
 
-sub save
-{
-	saveToDic();
-	my $count = 0;
-	open(OUT, ">output.csv");
-	
-	foreach my $key (keys %dic)
-	{
-		$count++;
-		print OUT "$count,$key,$dic{$key}\n";
+		
 	}
 	print "done save to output file!\n";
 	close OUT;
-	
 }
 
 sub usage
@@ -76,5 +66,5 @@ if($arg_length != 1)
 else
 {
 	$in_file = $ARGV[0];
-	save();
+	saveToDic();
 }

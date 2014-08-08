@@ -1,45 +1,25 @@
 use strict;
 use XML::Writer;
 use IO::File;
+use DBI;
 
-
-my %big_dictionary;
 my $input_file;
 my $pkg;
-my $count = 0;
+my $total = 0;
 
+# database
+my $dsn = "dbi:SQLite:dbname=all-package.db";
+my $user = '';
+my $password = '';
+my %attr = ( RaiseError => 1 );
+
+my $dbh = DBI->connect($dsn, $user, $password, \%attr) 
+	or die "Can't connect to database: $DBI::errstr";
+		
 sub println
 {
 	my $arg = shift;
 	print $arg,"\n";
-}
-
-sub readDb
-{
-	my $dir = "db/*.csv";
-	my @files = glob( $dir );
-
-	foreach my $file (@files )
-	{			
-		println "reading file: $file";
-	   	readToDic($file);
-	}
-	
-}
-
-sub readToDic
-{
-	my $file = shift;
-	open F1, "<$file";
-	my @data = <F1>;
-	
-	foreach my $line (@data)
-	{
-		my @record = split(",", $line);
-		$big_dictionary{$record[1]} = $record[2];
-	}
-	
-	close F1;
 }
 
 sub processPkg
@@ -50,7 +30,7 @@ sub processPkg
 #	print join "\n",@pkgData;
 #	print "\n\n";
 	my $output = IO::File->new(">$myPkg-Listing.tgl");
-	my $writer = XML::Writer->new(OUTPUT => $output, UNSAFE => 1, DATA_MODE => 1, DATA_INDENT=>4);
+	my $writer = XML::Writer->new(OUTPUT => $output, DATA_MODE => 1, DATA_INDENT=>4);
 	
 	$writer->xmlDecl("UTF-8");
 	
@@ -63,15 +43,14 @@ sub processPkg
 	my $oldGroup = "null";
 	my $totalTc = scalar @pkgData;
 	
-	foreach(@pkgData)
+	my $count = 0;
+	foreach my $line (@pkgData)
 	{
-		$count++;
-		my $line = $_;
+		$count++;		
 		my @lineData = split ',', $line;
 		
 		my $tcGroup = $lineData[0];
 		my $tcName = $lineData[1];
-		#my $tcVerdict = $lineData[2];
 		
 		if($tcGroup ne $oldGroup)
 		{
@@ -122,12 +101,15 @@ sub readInput
 	open(F2, "<$input_file");
 	
 	my @data = <F2>;
+	
+	
 	my @filter;
 	
 	foreach my $line (@data)
 	{
 		if($line =~ /^#/ or $line =~ /Passed/i)
 		{
+			println "skip this line: $line";
 			next;
 		}
 		
@@ -139,15 +121,17 @@ sub readInput
 		}
 		my $tcGroup = $lineData[2];
 		my $tcID = $lineData[3];
-		if(defined $big_dictionary{"$tcID--$tcGroup"})
+		
+		my $statement = $dbh->prepare("select ID from testcases where Key=\'$tcID--$tcGroup\'");
+		$statement->execute();
+		my @row = $statement->fetchrow();
+		if(not @row)
 		{
-			my $tcName = $big_dictionary{"$tcID--$tcGroup"};
-			chomp $tcName;
-			push(@filter, "$tcGroup,$tcName");
+			println "$tcID--$tcGroup does\'t exist in big database"; 
 		}
 		else
-		{
-			println "$tcID--$tcGroup does\'t exist in big dictionary";  
+		{			
+			push(@filter, $row[0]);
 		}
 	}
 	
@@ -156,22 +140,47 @@ sub readInput
 
 }
 
-sub main
+sub getGroupFromKey
 {
-	println "Read database csv...";
-	readDb();
-	
-	println "Read to big dictionary...";
-	readToDic();
+	my $key = shift;
+	my @res = split("--", $key);
+	return $res[1];
+}
+
+sub main2
+{
 	
 	println "Read input file $input_file...";
-	my @data = readInput();
+	my @data = sort(readInput());
+	
+	my @tgl_data;
+	foreach my $id (@data)
+	{
+		$total++;
+		my $statement = $dbh->prepare("select Key,TCName from testcases where ID=\'$id\'");
+		$statement->execute();
+		my @row = $statement->fetchrow();
+		
+		if(not @row)
+		{
+			println "ID: $id does\'t exist in big database"; 
+		}
+		else
+		{
+			my $group = getGroupFromKey($row[0]);
+			my $testcase = $row[1];
+			chomp $testcase;
+			push(@tgl_data, "$group,$testcase");
+		}
+	}
 	
 	println "Generate tgl file...";
-	processPkg(@data);
+	processPkg(@tgl_data);
 	
-	println "Total testcase in tgl file: $count";
+	println "Total testcase in tgl file: $total";
 	println "Finish!";
+#	print join("\n", @data);
+	
 }
 
 sub usage
@@ -190,6 +199,8 @@ else
 {
 	$input_file = $ARGV[0];
 	$pkg = $ARGV[1];
-	main();
+	main2();
 }
+
+$dbh->disconnect();
 

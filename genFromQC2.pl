@@ -148,7 +148,7 @@ sub getGroupFromKey
 	return $res[1];
 }
 
-sub main2
+sub main
 {
 	
 	println "Read input file $input_file...";
@@ -200,7 +200,7 @@ else
 {
 	$input_file = $ARGV[0];
 	$pkg = $ARGV[1];
-	main2();
+	main();
 }
 
 $dbh->disconnect();

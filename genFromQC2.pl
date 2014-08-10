@@ -3,6 +3,7 @@ use strict;
 use XML::Writer;
 use IO::File;
 use DBI;
+use Switch;
 
 my $input_file;
 my $pkg;
@@ -23,9 +24,26 @@ sub println
 	print $arg,"\n";
 }
 
+sub getPkgName
+{
+	switch($pkg)
+	{
+		case "cl" { return "CLIENT-PKG"}
+		case "se" { return "SERVER-PKG"}
+		case "sw" { return "SWITCH-PKG"}
+		case "uc" { return "UCB-PKG"}
+		case "vm" { return "VMB-PKG"}
+		case "dccl" { return "DCAL_CLIENT-PKG"}
+		case "dcse" { return "DCAL_SERVER-PKG"}
+		case "dcsw" { return "DCAL_SWITCH-PKG"}
+		case "dcvm" { return "DCAL_VMB-PKG"}		
+	}
+	return "Unknown";
+}
+
 sub processPkg
 {
-	my $myPkg = $pkg;
+	my $myPkg = getPkgName($pkg);
 	my @pkgData = @_;
 #	print "package data:\n";
 #	print join "\n",@pkgData;

@@ -141,7 +141,7 @@ sub readInput
 		my $tcGroup = $lineData[2];
 		my $tcID = $lineData[3];
 		
-		my $statement = $dbh->prepare("select ID from testcases where Key=\'$tcID--$tcGroup\'");
+		my $statement = $dbh->prepare("SELECT ID FROM testcases WHERE Key=\'$tcID--$tcGroup\'");
 		$statement->execute();
 		my @row = $statement->fetchrow();
 		if(not @row)
@@ -176,7 +176,7 @@ sub main
 	foreach my $id (@data)
 	{
 		$total++;
-		my $statement = $dbh->prepare("select Key,TCName from testcases where ID=\'$id\'");
+		my $statement = $dbh->prepare("SELECT Key,TCName FROM testcases WHERE ID=\'$id\'");
 		$statement->execute();
 		my @row = $statement->fetchrow();
 		

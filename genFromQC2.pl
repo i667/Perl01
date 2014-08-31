@@ -138,10 +138,13 @@ sub readInput
 			print "Wrong format: $line\n";
 			next;
 		}
-		my $tcGroup = $lineData[2];
-		my $tcID = $lineData[3];
+		my $tcGroup = $lineData[4];
+		chomp $tcGroup;
+		$tcGroup =~ s/\\/_/g;
+		#print "group after replace: $tcGroup\n";
+		my $tcID = $lineData[1];
 		
-		my $statement = $dbh->prepare("SELECT ID FROM testcases WHERE Key=\'$tcID--$tcGroup\'");
+		my $statement = $dbh->prepare("SELECT InternalID FROM testcases WHERE Key=\'$tcID--$tcGroup\'");
 		$statement->execute();
 		my @row = $statement->fetchrow();
 		if(not @row)
@@ -176,7 +179,9 @@ sub main
 	foreach my $id (@data)
 	{
 		$total++;
-		my $statement = $dbh->prepare("SELECT Key,TCName FROM testcases WHERE ID=\'$id\'");
+		
+#		print "id: $id\n";
+		my $statement = $dbh->prepare("SELECT Key,TCName FROM testcases WHERE InternalID=\'$id\'");
 		$statement->execute();
 		my @row = $statement->fetchrow();
 		
